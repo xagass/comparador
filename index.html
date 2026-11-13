@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DiffView Studio | Comparador Compartilhável</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- LZ-String para compressão compacta -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #09090b; color: #fafafa; overflow-x: hidden; }
+        .checkerboard {
+            background-image: linear-gradient(45deg, #18181b 25%, transparent 25%), linear-gradient(-45deg, #18181b 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #18181b 75%), linear-gradient(-45deg, transparent 75%, #18181b 75%);
+            background-size: 20px 20px; background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+        }
+        .comparison-container { position: relative; user-select: none; touch-action: pan-y; overflow: hidden; }
+        .img-overlay { position: absolute; top: 0; left: 0; height: 100%; width: 100%; overflow: hidden; }
+        .slider-handle { position: absolute; top: 0; bottom: 0; width: 2px; background: #ffffff; box-shadow: 0 0 15px rgba(0, 0, 0, 0.8); cursor: ew-resize; z-index: 30; transform: translateX(-50%); }
+        .slider-button { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 44px; height: 44px; border-radius: 9999px; background: #ffffff; color: #09090b; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6); }
+        @keyframes slideUp { from { transform: translate(-50%, 100%); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+        .toast-enter { animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <header class="border-b border-zinc-800 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center shadow-lg shadow-blue-600/20">
+                    <i data-lucide="split-square-horizontal" class="w-5 h-5 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg tracking-tight text-white leading-none">DiffView <span class="text-blue-500">Studio</span></h1>
+                    <p class="text-[11px] text-zinc-400 mt-0.5">Comparador Visual Instantâneo</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button id="btnNewComparison" onclick="resetApp()" class="hidden px-3 py-2 text-xs font-medium text-zinc-300 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 rounded-lg transition">Nova</button>
+                <button id="btnShareCopy" onclick="copyShareLink()" disabled class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-blue-600 hover:bg-blue-500 disabled:bg-zinc-800 disabled:text-zinc-600 rounded-lg shadow-lg shadow-blue-600/20 transition flex items-center gap-2">
+                    <i data-lucide="link" class="w-4 h-4"></i>
+                    <span id="shareBtnText">Copiar Link Compacto</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-6">
+        
+        <!-- Banner de Visualização Compartilhada (Cliente) -->
+        <div id="sharedModeBanner" class="hidden bg-blue-950/40 border border-blue-800/50 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-blue-500/20 rounded-lg text-blue-400">
+                    <i data-lucide="eye" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h2 class="text-sm font-semibold text-blue-100">Modo Visualização para Cliente</h2>
+                    <p class="text-xs text-blue-300/80">Arraste a linha central para comparar o Antes e o Depois.</p>
+                </div>
+            </div>
+            <button onclick="exitSharedMode()" class="px-3 py-1.5 text-xs font-medium bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition whitespace-nowrap">Criar Nova Comparação</button>
+        </div>
+
+        <!-- Painel de Link Direto e Configuração -->
+        <div id="linkBoxSection" class="hidden bg-zinc-900 border border-zinc-800 rounded-xl p-3.5 flex flex-col gap-2">
+            <div class="flex justify-between items-center">
+                <span class="text-xs font-semibold text-zinc-300 flex items-center gap-1.5"><i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i> Link Compacto Pronto para Envio:</span>
+                <span id="linkSizeBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-zinc-800 text-zinc-400"></span>
+            </div>
+            <div class="flex items-center gap-2">
+                <input type="text" id="shareUrlOutput" readonly class="w-full bg-zinc-950 border border-zinc-800 rounded-lg px-3 py-2 text-xs text-blue-400 font-mono focus:outline-none select-all" onclick="this.select()">
+                <button onclick="copyShareLink()" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-medium text-xs rounded-lg transition whitespace-nowrap">Copiar</button>
+            </div>
+        </div>
+
+        <section id="editorPanel" class="grid grid-cols-1 lg:grid-cols-12 gap-4 bg-zinc-900/50 border border-zinc-800 p-4 rounded-2xl">
+            <div class="lg:col-span-5 flex flex-col gap-2">
+                <div class="flex justify-between items-center"><label class="text-xs font-semibold text-zinc-400">1. Imagem Antes</label><input type="text" id="labelBeforeInput" value="ANTES" oninput="updateLabels()" class="bg-zinc-950 border border-zinc-800 rounded px-2 py-0.5 text-xs text-zinc-200 w-24 text-right"></div>
+                <label class="relative group cursor-pointer flex flex-col items-center justify-center h-28 border-2 border-dashed border-zinc-700 hover:border-blue-500 bg-zinc-950 rounded-xl overflow-hidden">
+                    <input type="file" id="fileBefore" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'before')">
+                    <img id="thumbBefore" class="hidden absolute inset-0 w-full h-full object-cover opacity-30">
+                    <span id="statusBefore" class="text-xs text-zinc-400 z-10 text-center px-2">Clique ou arraste a imagem</span>
+                </label>
+            </div>
+            <div class="lg:col-span-5 flex flex-col gap-2">
+                <div class="flex justify-between items-center"><label class="text-xs font-semibold text-zinc-400">2. Imagem Depois</label><input type="text" id="labelAfterInput" value="DEPOIS" oninput="updateLabels()" class="bg-zinc-950 border border-zinc-800 rounded px-2 py-0.5 text-xs text-zinc-200 w-24 text-right"></div>
+                <label class="relative group cursor-pointer flex flex-col items-center justify-center h-28 border-2 border-dashed border-zinc-700 hover:border-blue-500 bg-zinc-950 rounded-xl overflow-hidden">
+                    <input type="file" id="fileAfter" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'after')">
+                    <img id="thumbAfter" class="hidden absolute inset-0 w-full h-full object-cover opacity-30">
+                    <span id="statusAfter" class="text-xs text-zinc-400 z-10 text-center px-2">Clique ou arraste a imagem</span>
+                </label>
+            </div>
+            <div class="lg:col-span-2 flex flex-col justify-end">
+                <button onclick="loadDemoImages()" class="w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-zinc-200 rounded-xl text-xs font-medium transition flex items-center justify-center gap-1.5"><i data-lucide="sparkles" class="w-3.5 h-3.5 text-blue-400"></i> Exemplo Rápido</button>
+            </div>
+        </section>
+
+        <!-- Palco do Comparador -->
+        <section class="flex-1 flex flex-col items-center justify-center bg-zinc-900/20 border border-zinc-800 rounded-2xl p-4 min-h-[420px]">
+            <div id="emptyState" class="text-center py-12 px-4">
+                <i data-lucide="images" class="w-12 h-12 text-zinc-600 mx-auto mb-3"></i>
+                <h3 class="text-sm font-semibold text-zinc-300">Nenhuma comparação carregada</h3>
+                <p class="text-xs text-zinc-500 mt-1">Envie as imagens acima para gerar o comparador e o link compacto.</p>
+            </div>
+            <div id="stageWrapper" class="hidden w-full flex flex-col items-center">
+                <div id="comparisonBox" class="comparison-container checkerboard rounded-xl shadow-2xl border border-zinc-700 max-w-full" style="max-height: 70vh;">
+                    <img id="imgAfterDisplay" src="" class="block max-w-full max-h-[70vh] object-contain pointer-events-none">
+                    <span id="badgeAfter" class="absolute top-3 right-3 z-20 px-2 py-1 rounded text-xs font-bold bg-black/70 text-white border border-white/10">DEPOIS</span>
+                    <div id="beforeOverlay" class="img-overlay" style="clip-path: inset(0 50% 0 0);">
+                        <img id="imgBeforeDisplay" src="" class="block w-full h-full object-contain pointer-events-none">
+                        <span id="badgeBefore" class="absolute top-3 left-3 z-20 px-2 py-1 rounded text-xs font-bold bg-black/70 text-white border border-white/10">ANTES</span>
+                    </div>
+                    <div id="sliderHandle" class="slider-handle" style="left: 50%;">
+                        <div class="slider-button"><i data-lucide="chevrons-left-right" class="w-4 h-4"></i></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 hidden bg-zinc-900 border border-zinc-700 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3">
+        <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400"></i>
+        <span id="toastText" class="text-xs font-semibold">Link copiado com sucesso!</span>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const state = { rawBefore: null, rawAfter: null, labelBefore: 'ANTES', labelAfter: 'DEPOIS', sliderPercent: 50, isDragging: false };
+        const comparisonBox = document.getElementById('comparisonBox'), beforeOverlay = document.getElementById('beforeOverlay'), sliderHandle = document.getElementById('sliderHandle'), imgBeforeDisplay = document.getElementById('imgBeforeDisplay'), imgAfterDisplay = document.getElementById('imgAfterDisplay');
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setupSliderEvents();
+            checkUrlHash();
+        });
+
+        function checkUrlHash() {
+            const hash = window.location.hash;
+            if (hash.startsWith('#cmp=')) {
+                try {
+                    const jsonStr = LZString.decompressFromEncodedURIComponent(hash.replace('#cmp=', ''));
+                    const payload = JSON.parse(jsonStr);
+                    if (payload && payload.b && payload.a) {
+                        state.rawBefore = payload.b;
+                        state.rawAfter = payload.a;
+                        state.labelBefore = payload.lb || 'ANTES';
+                        state.labelAfter = payload.la || 'DEPOIS';
+                        document.getElementById('labelBeforeInput').value = state.labelBefore;
+                        document.getElementById('labelAfterInput').value = state.labelAfter;
+                        document.getElementById('editorPanel').classList.add('hidden');
+                        document.getElementById('sharedModeBanner').classList.remove('hidden');
+                        document.getElementById('btnNewComparison').classList.remove('hidden');
+                        renderStage();
+                    }
+                } catch(e) { console.error('Erro ao decodificar link:', e); }
+            }
+        }
+
+        function handleImageUpload(e, side) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                // Otimização inteligente: Redimensiona para max 480px e WebP 0.6 para gerar link compacto e leve
+                compressImage(evt.target.result, 480, 0.6, (res) => {
+                    if (side === 'before') {
+                        state.rawBefore = res;
+                        document.getElementById('thumbBefore').src = res;
+                        document.getElementById('thumbBefore').classList.remove('hidden');
+                        document.getElementById('statusBefore').textContent = file.name;
+                    } else {
+                        state.rawAfter = res;
+                        document.getElementById('thumbAfter').src = res;
+                        document.getElementById('thumbAfter').classList.remove('hidden');
+                        document.getElementById('statusAfter').textContent = file.name;
+                    }
+                    if (state.rawBefore && state.rawAfter) {
+                        renderStage();
+                        generateAndSyncLink();
+                    }
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function compressImage(dataUrl, maxDim, quality, cb) {
+            const img = new Image();
+            img.onload = () => {
+                let w = img.width, h = img.height;
+                if (w > maxDim || h > maxDim) {
+                    if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+                    else { w = Math.round((w * maxDim) / h); h = maxDim; }
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                cb(canvas.toDataURL('image/webp', quality));
+            };
+            img.src = dataUrl;
+        }
+
+        function renderStage() {
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('stageWrapper').classList.remove('hidden');
+            imgAfterDisplay.src = state.rawAfter;
+            imgBeforeDisplay.src = state.rawBefore;
+            setSlider(50);
+        }
+
+        function generateAndSyncLink() {
+            const payload = { b: state.rawBefore, a: state.rawAfter, lb: state.labelBefore, la: state.labelAfter };
+            const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(payload));
+            const fullUrl = window.location.href.split('#')[0] + '#cmp=' + compressed;
+            
+            try {
+                window.history.replaceState(null, '', '#cmp=' + compressed);
+            } catch(e) {}
+
+            document.getElementById('shareUrlOutput').value = fullUrl;
+            document.getElementById('linkBoxSection').classList.remove('hidden');
+            document.getElementById('btnShareCopy').disabled = false;
+
+            const sizeKB = Math.round((fullUrl.length * 2) / 1024);
+            const badge = document.getElementById('linkSizeBadge');
+            badge.textContent = `Tamanho do Link: ~${sizeKB} KB (Compacto)`;
+        }
+
+        function copyShareLink() {
+            const input = document.getElementById('shareUrlOutput');
+            input.select();
+            input.setSelectionRange(0, 99999);
+            try {
+                navigator.clipboard.writeText(input.value);
+                showToast("Link compacto copiado para a área de transferência!");
+            } catch(e) {
+                document.execCommand('copy');
+                showToast("Link copiado com sucesso!");
+            }
+        }
+
+        function updateLabels() {
+            state.labelBefore = document.getElementById('labelBeforeInput').value || 'ANTES';
+            state.labelAfter = document.getElementById('labelAfterInput').value || 'DEPOIS';
+            document.getElementById('badgeBefore').textContent = state.labelBefore;
+            document.getElementById('badgeAfter').textContent = state.labelAfter;
+            if(state.rawBefore && state.rawAfter) generateAndSyncLink();
+        }
+
+        function setSlider(pct) {
+            state.sliderPercent = pct;
+            sliderHandle.style.left = `${pct}%`;
+            beforeOverlay.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
+        }
+
+        function setupSliderEvents() {
+            const move = (clientX) => {
+                const rect = comparisonBox.getBoundingClientRect();
+                if(!rect.width) return;
+                setSlider(Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100)));
+            };
+            comparisonBox.addEventListener('mousedown', (e) => { state.isDragging = true; move(e.clientX); });
+            window.addEventListener('mousemove', (e) => { if(state.isDragging) move(e.clientX); });
+            window.addEventListener('mouseup', () => state.isDragging = false);
+            comparisonBox.addEventListener('touchstart', (e) => { state.isDragging = true; if(e.touches[0]) move(e.touches[0].clientX); }, {passive:true});
+            window.addEventListener('touchmove', (e) => { if(state.isDragging && e.touches[0]) move(e.touches[0].clientX); }, {passive:true});
+            window.addEventListener('touchend', () => state.isDragging = false);
+        }
+
+        function showToast(text) {
+            const t = document.getElementById('toast');
+            document.getElementById('toastText').textContent = text;
+            t.classList.remove('hidden');
+            setTimeout(() => t.classList.add('hidden'), 3000);
+        }
+
+        function loadDemoImages() {
+            const make = (title, isAfter) => {
+                const c = document.createElement('canvas'); c.width=480; c.height=320;
+                const ctx = c.getContext('2d');
+                ctx.fillStyle = isAfter ? '#1d4ed8' : '#27272a';
+                ctx.fillRect(0,0,480,320);
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 24px Inter'; ctx.textAlign='center';
+                ctx.fillText(title, 240, 160);
+                return c.toDataURL('image/webp', 0.6);
+            };
+            state.rawBefore = make('ANTES (ORIGINAL)', false);
+            state.rawAfter = make('DEPOIS (TRATADO)', true);
+            document.getElementById('thumbBefore').src = state.rawBefore;
+            document.getElementById('thumbBefore').classList.remove('hidden');
+            document.getElementById('statusBefore').textContent = 'exemplo_antes.webp';
+            document.getElementById('thumbAfter').src = state.rawAfter;
+            document.getElementById('thumbAfter').classList.remove('hidden');
+            document.getElementById('statusAfter').textContent = 'exemplo_depois.webp';
+            renderStage();
+            generateAndSyncLink();
+        }
+
+        function exitSharedMode() { location.href = location.pathname; }
+        function resetApp() { location.href = location.pathname; }
+    </script>
+</body>
+</html>
