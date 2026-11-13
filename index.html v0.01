@@ -607,6 +607,61 @@
             }
         }
 
+        function setSliderPosition(percent) {
+            const clamped = Math.max(0, Math.min(100, percent));
+            state.sliderPercent = clamped;
+            sliderHandle.style.left = `${clamped}%`;
+            beforeOverlay.style.clipPath = `inset(0 ${100 - clamped}% 0 0)`;
+        }
+
+        function setupSliderEvents() {
+            const updateFromClientX = (clientX) => {
+                const rect = comparisonBox.getBoundingClientRect();
+                if (rect.width === 0) return;
+                const x = clientX - rect.left;
+                const percent = (x / rect.width) * 100;
+                setSliderPosition(percent);
+            };
+
+            comparisonBox.addEventListener('mousedown', (e) => {
+                state.isDragging = true;
+                sliderHandle.classList.add('active');
+                updateFromClientX(e.clientX);
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!state.isDragging) return;
+                updateFromClientX(e.clientX);
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (state.isDragging) {
+                    state.isDragging = false;
+                    sliderHandle.classList.remove('active');
+                }
+            });
+
+            comparisonBox.addEventListener('touchstart', (e) => {
+                state.isDragging = true;
+                sliderHandle.classList.add('active');
+                if (e.touches.length > 0) {
+                    updateFromClientX(e.touches[0].clientX);
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchmove', (e) => {
+                if (!state.isDragging) return;
+                if (e.touches.length > 0) {
+                    updateFromClientX(e.touches[0].clientX);
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchend', () => {
+                state.isDragging = false;
+                sliderHandle.classList.remove('active');
+            });
+        }
+
         // ==========================================
         // 4. GERAÇÃO DE LINK CURTO VIA NUVEM ANÔNIMA GRATUITA
         // ==========================================
