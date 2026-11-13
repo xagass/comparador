@@ -117,7 +117,7 @@
 
                 <button id="btnShareLink" onclick="generateAndCopyLink()" disabled class="px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-blue-600 hover:bg-blue-500 disabled:bg-zinc-800 disabled:text-zinc-500 disabled:cursor-not-allowed rounded-xl shadow-lg shadow-blue-600/20 disabled:shadow-none transition flex items-center gap-2">
                     <i data-lucide="link" class="w-4 h-4"></i>
-                    <span id="shareBtnText">Copiar Link Compartilhável</span>
+                    <span id="shareBtnText">Gerar Link Curto</span>
                 </button>
             </div>
         </div>
@@ -184,28 +184,28 @@
                 <div>
                     <div class="flex items-center justify-between mb-1.5">
                         <span class="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
-                            <i data-lucide="sliders" class="w-3.5 h-3.5 text-blue-400"></i>
-                            Otimização do Link
+                            <i data-lucide="cloud" class="w-3.5 h-3.5 text-blue-400"></i>
+                            Link Curto em Nuvem
                         </span>
                         <span id="linkSizeBadge" class="text-[10px] font-mono px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-400">Aguardando imagens</span>
                     </div>
                     <p class="text-[11px] text-zinc-500 leading-relaxed">
-                        As imagens são comprimidas e embutidas na própria URL para envio imediato sem cadastro.
+                        Salva a comparação em nuvem anônima gratuita (365 dias) e gera uma URL curta ideal para WhatsApp.
                     </p>
                 </div>
 
                 <div class="mt-3 pt-2.5 border-t border-zinc-800/80 flex items-center justify-between gap-2">
                     <label for="resolutionPreset" class="text-[11px] text-zinc-400 whitespace-nowrap">Qualidade:</label>
                     <select id="resolutionPreset" onchange="reprocessImages()" class="bg-zinc-900 border border-zinc-700 text-zinc-200 text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500 w-full">
-                        <option value="900">HD Equilibrado (Recomendado)</option>
-                        <option value="1280">Full HD Alta Nitidez</option>
-                        <option value="550">Compacto (Ideal p/ WhatsApp)</option>
+                        <option value="1280">Full HD Alta Nitidez (Recomendado)</option>
+                        <option value="900">HD Equilibrado</option>
+                        <option value="600">Compacto (Carregamento Instantâneo)</option>
                     </select>
                 </div>
             </div>
         </section>
 
-        <!-- Barra Dedicada de Link Compartilhável (Estratégia 1: Input Visível & Seleção Direta) -->
+        <!-- Barra Dedicada de Link Compartilhável (URL Curta) -->
         <section id="shareBarPanel" class="hidden bg-zinc-900/80 border border-blue-500/30 rounded-2xl p-3.5 sm:p-4 shadow-lg shadow-blue-950/20 transition-all">
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                 <div class="flex items-center gap-2 text-blue-400 shrink-0">
@@ -213,8 +213,8 @@
                         <i data-lucide="share-2" class="w-4 h-4"></i>
                     </div>
                     <div>
-                        <span class="text-xs font-semibold text-zinc-100 block leading-tight">Link Direto da Comparação</span>
-                        <span class="text-[10px] text-zinc-400 block">Atualizado automaticamente em tempo real</span>
+                        <span class="text-xs font-semibold text-zinc-100 block leading-tight">Link Curto da Comparação</span>
+                        <span id="shareBarSubtitle" class="text-[10px] text-zinc-400 block">Clique em "Gerar Link Curto" para publicar</span>
                     </div>
                 </div>
 
@@ -224,8 +224,8 @@
                         id="shareLinkInput" 
                         readonly 
                         onclick="this.select(); this.setSelectionRange(0, 999999);" 
-                        class="w-full bg-zinc-950 border border-zinc-700/90 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 rounded-xl px-3 py-2 text-xs text-zinc-200 font-mono select-all focus:outline-none transition"
-                        placeholder="O link compartilhável aparecerá aqui..."
+                        class="w-full bg-zinc-950 border border-zinc-700/90 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 rounded-xl px-3 py-2 text-xs text-blue-300 font-mono select-all focus:outline-none transition"
+                        placeholder="Clique em 'Gerar Link Curto' ao lado..."
                     >
                     <button 
                         type="button" 
@@ -233,14 +233,14 @@
                         onclick="generateAndCopyLink()" 
                         class="px-4 py-2 bg-blue-600 hover:bg-blue-500 active:scale-[0.98] text-white text-xs font-semibold rounded-xl shadow-md shadow-blue-600/20 transition flex items-center gap-1.5 whitespace-nowrap shrink-0"
                     >
-                        <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-                        <span id="copyDirectBtnText">Copiar Link</span>
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                        <span id="copyDirectBtnText">Gerar & Copiar</span>
                     </button>
                 </div>
             </div>
             <p id="manualCopyHint" class="hidden text-[11px] text-amber-400 mt-2 flex items-center gap-1.5">
                 <i data-lucide="info" class="w-3.5 h-3.5 shrink-0"></i>
-                <span>Seu navegador bloqueou a cópia automática. O link já está selecionado acima — pressione <strong>Ctrl+C</strong> (ou <strong>Cmd+C</strong>) para copiar.</span>
+                <span>Seu navegador bloqueou a cópia automática. O link curto já está selecionado acima — pressione <strong>Ctrl+C</strong> (ou <strong>Cmd+C</strong>) para copiar.</span>
             </p>
         </section>
 
@@ -338,7 +338,9 @@
             labelBefore: 'ANTES',
             labelAfter: 'DEPOIS',
             sliderPercent: 50,
-            isDragging: false
+            isDragging: false,
+            cachedShortUrl: null,
+            isUploading: false
         };
 
         // Referências DOM
@@ -349,7 +351,7 @@
         const imgAfterDisplay = document.getElementById('imgAfterDisplay');
 
         // ==========================================
-        // 1. INICIALIZAÇÃO E LEITURA DA URL
+        // 1. INICIALIZAÇÃO E LEITURA DA URL (CURTA #id= OU LEGADA #cmp=)
         // ==========================================
         window.addEventListener('DOMContentLoaded', () => {
             setupDragAndDrop('dropzoneBefore', 'before');
@@ -360,8 +362,33 @@
 
         window.addEventListener('hashchange', checkUrlForSharedData);
 
-        function checkUrlForSharedData() {
+        async function checkUrlForSharedData() {
             const hash = window.location.hash;
+
+            // Novo formato curto via nuvem gratuita (#id=XXXXXXXXX)
+            if (hash && hash.startsWith('#id=')) {
+                const pasteId = hash.replace('#id=', '').trim();
+                if (!pasteId) return;
+
+                try {
+                    showToast('Carregando comparação...', 'Baixando imagens da nuvem em alta definição.');
+                    const response = await fetch(`https://dpaste.com/${pasteId}.txt`);
+                    if (!response.ok) throw new Error('Comparação não encontrada ou expirada.');
+
+                    const rawText = await response.text();
+                    const payload = JSON.parse(rawText);
+
+                    if (payload.b && payload.a) {
+                        applyLoadedPayload(payload, `${window.location.href.split('#')[0]}#id=${pasteId}`);
+                    }
+                } catch (err) {
+                    console.error('Erro ao carregar link curto:', err);
+                    showToast('Link indisponível', 'Não foi possível carregar esta comparação.', 'error');
+                }
+                return;
+            }
+
+            // Suporte retrocompatível para links antigos (#cmp=...)
             if (hash && hash.startsWith('#cmp=')) {
                 try {
                     const compressed = hash.replace('#cmp=', '');
@@ -370,30 +397,37 @@
 
                     const payload = JSON.parse(jsonStr);
                     if (payload.b && payload.a) {
-                        state.rawBefore = payload.b;
-                        state.rawAfter = payload.a;
-                        state.optimizedBefore = payload.b;
-                        state.optimizedAfter = payload.a;
-                        state.labelBefore = payload.lb || 'ANTES';
-                        state.labelAfter = payload.la || 'DEPOIS';
-
-                        document.getElementById('labelBeforeInput').value = state.labelBefore;
-                        document.getElementById('labelAfterInput').value = state.labelAfter;
-                        updateLabels();
-
-                        // Ativa visualização limpa para o cliente
-                        document.getElementById('editorPanel').classList.add('hidden');
-                        document.getElementById('sharedModeBanner').classList.remove('hidden');
-                        document.getElementById('btnNewComparison').classList.remove('hidden');
-
-                        renderComparisonStage();
-                        updateLinkStatusBadge();
+                        applyLoadedPayload(payload, window.location.href);
                     }
                 } catch (err) {
                     console.error('Erro ao ler URL:', err);
                     showToast('Link inválido ou incompleto', 'Não foi possível carregar as imagens desta URL.', 'error');
                 }
             }
+        }
+
+        function applyLoadedPayload(payload, currentUrl) {
+            state.rawBefore = payload.b;
+            state.rawAfter = payload.a;
+            state.optimizedBefore = payload.b;
+            state.optimizedAfter = payload.a;
+            state.labelBefore = payload.lb || 'ANTES';
+            state.labelAfter = payload.la || 'DEPOIS';
+            state.cachedShortUrl = currentUrl;
+
+            document.getElementById('labelBeforeInput').value = state.labelBefore;
+            document.getElementById('labelAfterInput').value = state.labelAfter;
+            updateLabels();
+
+            // Ativa visualização limpa para o cliente
+            document.getElementById('editorPanel').classList.add('hidden');
+            document.getElementById('sharedModeBanner').classList.remove('hidden');
+            document.getElementById('btnNewComparison').classList.remove('hidden');
+
+            renderComparisonStage();
+            document.getElementById('shareLinkInput').value = currentUrl;
+            document.getElementById('shareBarSubtitle').textContent = `Link curto ativo (${currentUrl.length} caracteres)`;
+            updateLinkStatusBadge();
         }
 
         function exitSharedMode() {
@@ -412,6 +446,7 @@
             state.rawAfter = null;
             state.optimizedBefore = null;
             state.optimizedAfter = null;
+            state.cachedShortUrl = null;
             
             document.getElementById('fileBefore').value = '';
             document.getElementById('fileAfter').value = '';
@@ -515,7 +550,10 @@
 
         async function reprocessImages() {
             const maxDim = parseInt(document.getElementById('resolutionPreset').value, 10);
-            const quality = maxDim >= 1200 ? 0.72 : (maxDim >= 900 ? 0.78 : 0.82);
+            const quality = maxDim >= 1200 ? 0.85 : (maxDim >= 900 ? 0.82 : 0.78);
+
+            // Invalida o link curto anterior pois a imagem/qualidade mudou
+            state.cachedShortUrl = null;
 
             if (state.rawBefore) {
                 const resB = await compressImageForUrl(state.rawBefore, maxDim, quality);
@@ -545,7 +583,10 @@
             imgAfterDisplay.src = state.optimizedAfter;
             imgBeforeDisplay.src = state.optimizedBefore;
 
-            syncShareLinkField();
+            if (!state.cachedShortUrl) {
+                document.getElementById('shareLinkInput').value = '';
+                document.getElementById('shareBarSubtitle').textContent = 'Pronto para gerar URL curta (~65 caracteres)';
+            }
 
             imgAfterDisplay.onload = () => {
                 document.getElementById('dimensionsInfo').textContent = 
@@ -559,126 +600,123 @@
             state.labelAfter = document.getElementById('labelAfterInput').value || 'DEPOIS';
             document.getElementById('badgeBefore').textContent = state.labelBefore;
             document.getElementById('badgeAfter').textContent = state.labelAfter;
-            syncShareLinkField();
+            state.cachedShortUrl = null;
+            if (state.optimizedBefore && state.optimizedAfter) {
+                document.getElementById('shareLinkInput').value = '';
+                document.getElementById('shareBarSubtitle').textContent = 'Rótulo alterado — clique em Gerar & Copiar para atualizar';
+            }
         }
 
-        function setSliderPosition(percent) {
-            const clamped = Math.max(0, Math.min(100, percent));
-            state.sliderPercent = clamped;
-            sliderHandle.style.left = `${clamped}%`;
-            beforeOverlay.style.clipPath = `inset(0 ${100 - clamped}% 0 0)`;
-        }
-
-        function setupSliderEvents() {
-            const updateFromClientX = (clientX) => {
-                const rect = comparisonBox.getBoundingClientRect();
-                if (rect.width === 0) return;
-                const x = clientX - rect.left;
-                const percent = (x / rect.width) * 100;
-                setSliderPosition(percent);
-            };
-
-            comparisonBox.addEventListener('mousedown', (e) => {
-                state.isDragging = true;
-                sliderHandle.classList.add('active');
-                updateFromClientX(e.clientX);
-            });
-
-            window.addEventListener('mousemove', (e) => {
-                if (!state.isDragging) return;
-                updateFromClientX(e.clientX);
-            });
-
-            window.addEventListener('mouseup', () => {
-                if (state.isDragging) {
-                    state.isDragging = false;
-                    sliderHandle.classList.remove('active');
-                }
-            });
-
-            comparisonBox.addEventListener('touchstart', (e) => {
-                state.isDragging = true;
-                sliderHandle.classList.add('active');
-                if (e.touches.length > 0) {
-                    updateFromClientX(e.touches[0].clientX);
-                }
-            }, { passive: true });
-
-            window.addEventListener('touchmove', (e) => {
-                if (!state.isDragging) return;
-                if (e.touches.length > 0) {
-                    updateFromClientX(e.touches[0].clientX);
-                }
-            }, { passive: true });
-
-            window.addEventListener('touchend', () => {
-                state.isDragging = false;
-                sliderHandle.classList.remove('active');
-            });
-        }
         // ==========================================
-        // 4. GERAÇÃO E CÓPIA DO LINK (ESTRATÉGIA 1)
+        // 4. GERAÇÃO DE LINK CURTO VIA NUVEM ANÔNIMA GRATUITA
         // ==========================================
-        function buildShareableUrl() {
+        function buildFallbackLongUrl() {
             const payload = {
                 b: state.optimizedBefore,
                 a: state.optimizedAfter,
                 lb: state.labelBefore,
                 la: state.labelAfter
             };
-            const jsonStr = JSON.stringify(payload);
-            const compressed = LZString.compressToEncodedURIComponent(jsonStr);
+            const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(payload));
             const baseUrl = window.location.href.split('#')[0];
             return `${baseUrl}#cmp=${compressed}`;
         }
 
-        function syncShareLinkField() {
-            if (!state.optimizedBefore || !state.optimizedAfter) return;
-            const shareUrl = buildShareableUrl();
-            const inputEl = document.getElementById('shareLinkInput');
-            if (inputEl) {
-                inputEl.value = shareUrl;
+        function updateLinkStatusBadge() {
+            const badge = document.getElementById('linkSizeBadge');
+            if (state.cachedShortUrl) {
+                badge.className = 'text-[10px] font-mono px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
+                badge.textContent = `URL Curta • ${state.cachedShortUrl.length} caracteres`;
+            } else {
+                badge.className = 'text-[10px] font-mono px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-400 border border-blue-500/30';
+                badge.textContent = 'Pronto p/ Link Curto';
             }
-            return shareUrl;
         }
 
-        function updateLinkStatusBadge() {
-            const url = syncShareLinkField() || buildShareableUrl();
-            const sizeKB = Math.round((url.length * 2) / 1024);
-            const badge = document.getElementById('linkSizeBadge');
-            
-            if (sizeKB < 60) {
-                badge.className = 'text-[10px] font-mono px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30';
-                badge.textContent = `Pronto • ~${sizeKB} KB (Rápido)`;
-            } else if (sizeKB < 180) {
-                badge.className = 'text-[10px] font-mono px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-400 border border-blue-500/30';
-                badge.textContent = `Pronto • ~${sizeKB} KB (Ideal)`;
-            } else {
-                badge.className = 'text-[10px] font-mono px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-400 border border-amber-500/30';
-                badge.textContent = `Pesado • ~${sizeKB} KB (Use Compacto p/ Zap)`;
+        async function publishToFreeCloud() {
+            if (state.cachedShortUrl) return state.cachedShortUrl;
+
+            const payload = JSON.stringify({
+                b: state.optimizedBefore,
+                a: state.optimizedAfter,
+                lb: state.labelBefore,
+                la: state.labelAfter
+            });
+
+            // API pública e gratuita do dpaste.com (aceita CORS e retorna ID curto de 9 caracteres)
+            const formData = new URLSearchParams();
+            formData.append('content', payload);
+            formData.append('syntax', 'json');
+            formData.append('expiry_days', '365');
+
+            const response = await fetch('https://dpaste.com/api/v2/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: formData.toString()
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
             }
+
+            // A API retorna a URL criada (ex: https://dpaste.com/ABCD12345)
+            const createdUrl = (await response.text()).trim();
+            const pasteId = createdUrl.split('/').filter(Boolean).pop();
+
+            if (!pasteId) throw new Error('ID inválido retornado pela API');
+
+            const baseUrl = window.location.href.split('#')[0];
+            const shortUrl = `${baseUrl}#id=${pasteId}`;
+            state.cachedShortUrl = shortUrl;
+            return shortUrl;
         }
 
         async function generateAndCopyLink() {
-            if (!state.optimizedBefore || !state.optimizedAfter) return;
+            if (!state.optimizedBefore || !state.optimizedAfter || state.isUploading) return;
 
-            const shareUrl = syncShareLinkField();
-            const hashPart = `#cmp=${shareUrl.split('#cmp=')[1]}`;
+            const headerBtnText = document.getElementById('shareBtnText');
+            const directBtnText = document.getElementById('copyDirectBtnText');
+            const inputEl = document.getElementById('shareLinkInput');
+            const hintEl = document.getElementById('manualCopyHint');
 
-            // Atualiza a URL no histórico apenas se não estiver em protocolo restrito (ex: about:srcdoc)
+            state.isUploading = true;
+            if (headerBtnText) headerBtnText.textContent = 'Gerando Link Curto...';
+            if (directBtnText) directBtnText.textContent = 'Gerando...';
+
+            let shareUrl = '';
+            let isShort = false;
+
             try {
+                shareUrl = await publishToFreeCloud();
+                isShort = true;
+            } catch (err) {
+                console.warn('Falha na nuvem gratuita, usando fallback local:', err);
+                shareUrl = buildFallbackLongUrl();
+            } finally {
+                state.isUploading = false;
+            }
+
+            if (inputEl) inputEl.value = shareUrl;
+            updateLinkStatusBadge();
+
+            if (isShort) {
+                document.getElementById('shareBarSubtitle').textContent = `Link curto gerado com sucesso (${shareUrl.length} caracteres)`;
+            } else {
+                document.getElementById('shareBarSubtitle').textContent = 'Modo offline (sem conexão com nuvem gratuita)';
+            }
+
+            // Atualiza a URL no navegador sem recarregar
+            try {
+                const hashPart = `#${shareUrl.split('#')[1]}`;
                 if (window.location.protocol !== 'about:' && window.location.origin !== 'null') {
                     window.history.replaceState(null, '', hashPart);
                 }
-            } catch (e) {
-                // Ignora SecurityError em sandboxes/iframes
-            }
+            } catch (e) {}
 
-            const inputEl = document.getElementById('shareLinkInput');
-            const hintEl = document.getElementById('manualCopyHint');
+            // Cópia em múltiplas camadas
             let copied = false;
-
-            // Camada 1: Clipboard API moderna (HTTPS / Localhost)
             try {
                 if (navigator.clipboard && window.isSecureContext) {
                     await navigator.clipboard.writeText(shareUrl);
@@ -688,7 +726,6 @@
                 copied = false;
             }
 
-            // Camada 2: Seleção direta no input visível + execCommand('copy')
             if (!copied && inputEl) {
                 inputEl.focus();
                 inputEl.select();
@@ -702,26 +739,24 @@
 
             if (copied) {
                 if (hintEl) hintEl.classList.add('hidden');
-                if (inputEl) {
-                    inputEl.classList.remove('border-amber-500', 'ring-2', 'ring-amber-500/40');
-                }
+                if (inputEl) inputEl.classList.remove('border-amber-500', 'ring-2', 'ring-amber-500/40');
 
-                const headerBtnText = document.getElementById('shareBtnText');
-                const directBtnText = document.getElementById('copyDirectBtnText');
-                if (headerBtnText) headerBtnText.textContent = 'Link Copiado!';
+                if (headerBtnText) headerBtnText.textContent = 'Link Curto Copiado!';
                 if (directBtnText) directBtnText.textContent = 'Copiado!';
 
                 setTimeout(() => {
-                    if (headerBtnText) headerBtnText.textContent = 'Copiar Link Compartilhável';
-                    if (directBtnText) directBtnText.textContent = 'Copiar Link';
+                    if (headerBtnText) headerBtnText.textContent = 'Gerar Link Curto';
+                    if (directBtnText) directBtnText.textContent = 'Gerar & Copiar';
                 }, 2500);
 
                 showToast(
-                    'Link da comparação copiado!', 
-                    'As imagens estão salvas na URL. Basta colar e enviar para o cliente.'
+                    isShort ? `Link curto copiado (${shareUrl.length} caracteres)!` : 'Link copiado!',
+                    'Pronto para colar e enviar no WhatsApp do seu cliente.'
                 );
             } else if (inputEl) {
-                // Camada 3: Destaque visual e seleção garantida para Ctrl+C / Cmd+C
+                if (headerBtnText) headerBtnText.textContent = 'Gerar Link Curto';
+                if (directBtnText) directBtnText.textContent = 'Gerar & Copiar';
+
                 inputEl.focus();
                 inputEl.select();
                 inputEl.setSelectionRange(0, 999999);
@@ -729,8 +764,8 @@
                 if (hintEl) hintEl.classList.remove('hidden');
 
                 showToast(
-                    'Link selecionado na barra!', 
-                    'Pressione Ctrl+C (ou Cmd+C) para copiar o endereço destacado.',
+                    'Link curto selecionado!',
+                    'Pressione Ctrl+C (ou Cmd+C) para copiar o link destacado.',
                     'error'
                 );
             }
